@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
 
-const orderRoutes = require('./routes/orderRoutes');
-
+// MongoDB connection string
 const MONGODB_URI = 'mongodb+srv://monika:m1o2n3i4@monika.stxhfe5.mongodb.net/endlesscrave?retryWrites=true&w=majority';
 
 // Connect to MongoDB
@@ -19,11 +18,25 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from public/
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Use your order routes
-app.use('/api', orderRoutes);
+// ✅ Inline routes
+app.post('/api/submit-order', (req, res) => {
+  const { customerName, amount, paymentMethod } = req.body;
+  console.log('Order received:', { customerName, amount, paymentMethod });
+  res.json({ message: 'Order submitted successfully!' });
+});
+
+app.post('/api/payment', (req, res) => {
+  const { name, card, amount } = req.body;
+  console.log('Payment received:', { name, card, amount });
+  res.json({ message: 'Payment processed successfully!' });
+});
+
+// Optional: use modular routes if needed
+// const orderRoutes = require('./routes/orderRoutes');
+// app.use('/api', orderRoutes);
 
 // Start server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
