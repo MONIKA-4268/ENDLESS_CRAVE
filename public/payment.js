@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const name = document.getElementById('name').value.trim();
     const method = methodSelect.value;
+    const card = document.getElementById('card')?.value?.trim() || '';
     const amountRaw = localStorage.getItem('total');
     const amount = Number(amountRaw);
 
@@ -38,21 +39,38 @@ document.addEventListener('DOMContentLoaded', () => {
       paymentMethod: method
     };
 
+    const paymentData = {
+      name,
+      card,
+      amount
+    };
+
     try {
-      const res = await fetch('http://localhost:3000/api/submit-order', {
+      // Submit order
+      const orderRes = await fetch('https://endlesscrave.onrender.com/api/submit-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
 
-      if (res.ok) {
-        alert(`✅ Order placed successfully via ${method.toUpperCase()}!`);
-        localStorage.clear();
-        window.location.href = 'index.html';
-      } else {
-        const error = await res.json();
+      if (!orderRes.ok) {
+        const error = await orderRes.json();
         alert(`❌ Failed to place order: ${error.error || "Unknown error"}`);
+        return;
       }
+
+      // Submit payment
+      const paymentRes = await fetch('https://endlesscrave.onrender.com/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData)
+      });
+
+      const result = await paymentRes.json();
+      alert(result.message || `✅ Order placed successfully via ${method.toUpperCase()}!`);
+      localStorage.clear();
+      window.location.href = 'index.html';
+
     } catch (err) {
       console.error("❌ Error placing order:", err);
       alert("❌ Server error. Try again later.");
